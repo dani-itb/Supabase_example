@@ -19,9 +19,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,9 +29,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.supabasetest.model.Student
 import com.example.supabasetest.viewmodel.MyViewModel
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -39,27 +36,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun StudentsScreen(navigateToDetail: (String) -> Unit) {
+fun StudentsListScreen(navigateToNewStudent: () -> Unit, navigateToDetail: (String) -> Unit) {
     val myViewModel = viewModel<MyViewModel>()
     val studentsList by myViewModel.studentsList.observeAsState(emptyList<Student>())
     myViewModel.getAllStudents()
-    val studentName: String by myViewModel.studentName.observeAsState("")
-    val studentMark: String by myViewModel.studentMark.observeAsState("")
-    Column(
-        Modifier.fillMaxSize()
-    ) {
+    Column(Modifier.fillMaxSize()) {
         Column(
             Modifier
                 .fillMaxWidth()
-                .weight(0.4f),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .weight(0.2f), horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text("Create new student", fontSize = 28.sp, fontWeight = FontWeight.Bold)
-            TextField(value = studentName, onValueChange = { myViewModel.editStudentName(it) })
-            TextField(value = studentMark, onValueChange = { myViewModel.editStudentMark(it) })
-            Button(onClick = { myViewModel.insertNewStudent(studentName, studentMark) }) {
-                Text("Insert")
+            Button(onClick = { navigateToNewStudent() }) {
+                Text("New Student")
             }
         }
         Text(
@@ -69,28 +58,23 @@ fun StudentsScreen(navigateToDetail: (String) -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center
         )
-        LazyColumn(
-            Modifier
-                .fillMaxWidth()
-                .weight(0.6f)
-        ) {
-            items(studentsList) { student ->
-                val dissmissState = rememberSwipeToDismissBoxState(
-                    confirmValueChange = {
-                        if (it == SwipeToDismissBoxValue.EndToStart) {
-                            myViewModel.deleteStudent(student.id.toString())
-                            true
-                        } else {
-                            false
-                        }
+        LazyColumn(Modifier
+            .fillMaxWidth()
+            .weight(0.6f)) {
+            items(items = studentsList) { student ->
+                val dismissState = rememberSwipeToDismissBoxState()
+                if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart &&
+                    dismissState.targetValue == SwipeToDismissBoxValue.EndToStart
+                ) {
+                    LaunchedEffect(Unit) {
+                        myViewModel.deleteStudent(student.id.toString(), student.image.toString())
                     }
-                )
-                SwipeToDismissBox(state = dissmissState, backgroundContent = {
+                }
+                SwipeToDismissBox(state = dismissState, backgroundContent = {
                     Box(
                         Modifier
                             .fillMaxSize()
-                            .background(Color.Red)
-                            .padding(horizontal = 20.dp),
+                            .background(Color.Red),
                         contentAlignment = Alignment.BottomEnd
                     ) {
                         Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete")
@@ -100,6 +84,7 @@ fun StudentsScreen(navigateToDetail: (String) -> Unit) {
                 }
             }
         }
+
     }
 }
 
@@ -107,7 +92,9 @@ fun StudentsScreen(navigateToDetail: (String) -> Unit) {
 fun StudentItem(student: Student, navigateToDetail: (String) -> Unit) {
     Box(
         modifier = Modifier
-            .fillMaxWidth().background(Color.LightGray).border(width = 2.dp, Color.DarkGray)
+            .fillMaxWidth()
+            .background(Color.LightGray)
+            .border(width = 2.dp, Color.DarkGray)
             .clickable { navigateToDetail(student.id.toString()) }) {
         Row(
             Modifier.fillMaxWidth(),

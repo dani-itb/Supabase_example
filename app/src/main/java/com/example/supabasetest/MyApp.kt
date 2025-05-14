@@ -10,9 +10,6 @@ class MyApp: Application() {
 
     override fun onCreate() {
         super.onCreate()
-        database = MySupabaseClient(
-            supabaseUrl = "https://aobflzinjcljzqpxpcxs.supabase.co",
-            supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvYmZsemluamNsanpxcHhwY3hzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ5NzA1MjUsImV4cCI6MjA2MDU0NjUyNX0.0BZ0-bEdYED5R_VY5rGf3QI0D84nyz19GxUMte-whko"
-        )
+        database = MySupabaseClient()
     }
 }
